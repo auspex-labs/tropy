@@ -127,7 +127,7 @@
     "globals": "^15.6.0",
     "js-yaml": "^4.0.0",
     "jsonld": "^8.1.0",
-    "koa": "^2.13.1",
+    "koa": "^2.15.4",
     "koa-bodyparser": "^4.3.0",
     "lodash.debounce": "^4.0.7",
     "lodash.throttle": "^4.1.1",
