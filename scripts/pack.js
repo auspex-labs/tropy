@@ -53,7 +53,8 @@ async function integrity(path, algo = 'sha256') {
 
 program
   .name('tropy-pack')
-  .arguments('[targets...]')
+  .argument('[targets...]')
+  .allowUnknownOption()
   .option('--platform <name>', 'set target platform', PLATFORM)
   .option('--arch <name>', 'set target arch', ARCH)
   .option('--app <dir>', 'set the app directory')
@@ -76,7 +77,7 @@ program
       if (!args.length) {
         args = ({
           darwin: ['dmg', '7z'],
-          linux: ['bz2'],
+          linux: ['bz2', 'AppImage'],
           win32: ['squirrel']
         })[opts.platform]
       }
@@ -136,13 +137,13 @@ const exports = {
     mv(`${AppDir}/resources/icons`, `${AppDir}/usr/share/icons`)
     mv(`${AppDir}/resources/mime`, `${AppDir}/usr/share/mime`)
 
-    let png = `usr/share/icons/hicolor/512x512/apps/${qualified.name}.png`
-    let svg = `usr/share/icons/hicolor/scalable/apps/${qualified.name}.svg`
+    let png = `usr/share/icons/hicolor/512x512/apps/${qualified.appId}.png`
+    let svg = `usr/share/icons/hicolor/scalable/apps/${qualified.appId}.svg`
 
     cd(AppDir)
     ln('-s', qualified.name, 'AppRun')
     ln('-s', png, '.DirIcon')
-    ln('-s', svg, `${qualified.name}.svg`)
+    ln('-s', svg, `${qualified.appId}.svg`)
     cd('-')
 
     exec(`"${appimagetool}" -n -v ${AppDir} ${output}`, { silent })

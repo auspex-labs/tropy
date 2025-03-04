@@ -1,4 +1,5 @@
 import { call, select } from 'redux-saga/effects'
+import { Document } from 'alto-xml'
 import { Command } from '../command.js'
 import { create } from '../../models/transcription.js'
 import * as slice from '../../slices/transcriptions.js'
@@ -13,11 +14,15 @@ export class Create extends Command {
       ({ photo, selection } = yield select(state => state.nav))
     }
 
+    // TODO sanitize config if given (e.g. after retry)
+
     if (config == null) {
       config = { plugin }
     }
 
-    // TODO sync/convert data and text if given
+    if (data != null) {
+      text = Document.parse(data).toPlainText()
+    }
 
     let parents = Array.isArray(photo) ?
       photo : [selection || photo]

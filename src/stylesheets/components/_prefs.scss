@@ -1,3 +1,5 @@
+@use "../abstracts/config" as *;
+
 //
 // Preferences
 // --------------------------------------------------
@@ -9,7 +11,7 @@
   background-color: $prefs-bg;
 
   .titlebar {
-    height: zoom($toolbar-frameless-height);
+    height: zoom($toolbar-frameless-height-sm);
     color: $prefs-title-color;
 
     .is-blurred & {

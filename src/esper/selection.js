@@ -11,7 +11,7 @@ export class SelectionLayer extends Container {
     this.visible = false
   }
 
-  update({ selection } = BLANK) {
+  update({ selection, tool } = BLANK) {
     if (!this.children.length) return
 
     const scale = 1 / this.parent.scale.y
@@ -24,7 +24,9 @@ export class SelectionLayer extends Container {
     if (selection)
       selection = normalizeRectangle(selection)
 
-    this.children[i].update(scale, selection, 'live')
+    if (tool === ESPER.TOOL.SELECT) {
+      this.children[i].update(scale, selection, 'live')
+    }
   }
 
   destroy() {
@@ -101,7 +103,7 @@ export class Selection extends Graphics {
 
   destroy() {
     this.data = null
-    super.destroy({ children: true })
+    super.destroy(true)
   }
 
   update(
@@ -115,9 +117,9 @@ export class Selection extends Graphics {
     let colors = ESPER.COLOR.selection[state]
 
     this
-      .lineStyle(scale, ...colors.line)
-      .beginFill(...colors.fill)
-      .drawRect(x, y, width, height)
+      .rect(x, y, width, height)
+      .fill(colors.fill)
+      .stroke({ width: scale, ...colors.line })
   }
 
   sync(data = BLANK) {
@@ -138,7 +140,7 @@ export class SelectionOverlay extends Container {
   constructor() {
     super()
 
-    this.cacheAsBitmap = false
+    this.cacheAsTexture = false
     this.visible = false
 
     this.addChild(new Graphics(), new Graphics())
@@ -155,16 +157,15 @@ export class SelectionOverlay extends Container {
     let { x, y, width, height } = this.active
 
     this.children[1]
-      .lineStyle(scale, ...ESPER.COLOR.mask.line)
-      .beginFill(0, 0)
-      .drawRect(x, y, width, height)
+      .rect(x, y, width, height)
+      .fill({ color: 0, alpha: 0 })
+      .stroke({ width: scale, ...ESPER.COLOR.mask.line })
 
     this.children[0]
-      .beginFill(...ESPER.COLOR.mask.fill)
-      .drawRect(0, 0, bg.width, bg.height)
-      .beginHole()
-      .drawRect(x, y, width, height)
-      .endHole()
+      .rect(0, 0, bg.width, bg.height)
+      .fill(ESPER.COLOR.mask.fill)
+      .rect(x, y, width, height)
+      .cut()
   }
 
 

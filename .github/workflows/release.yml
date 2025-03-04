@@ -33,12 +33,12 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-20.04
+          - ubuntu-22.04
           - windows-2019
         arch:
           - x64
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             platform: linux
           - os: windows-2019
             platform: win32
@@ -72,11 +72,17 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: brew install python-setuptools
 
+      - name: Fix AppImage on Ubuntu 22
+        if: matrix.os == 'ubuntu-22.04'
+        run: sudo apt install libfuse2
+        # if: matrix.os == 'ubuntu-24.04'
+        # run: sudo apt install libfuse2t64
+
       - name: Install and build dependencies
         run: npm clean-install --no-progress
 
       - name: Rebuild native dependencies
-        run: npm run rebuild -- --force --arch ${{ matrix.arch }}
+        run: node scripts/rebuild.js --force --arch ${{ matrix.arch }}
 
       - name: Setup macOS keychain and signing certificates
         if: matrix.platform == 'darwin'
@@ -128,7 +134,8 @@ jobs:
           allowUpdates: true
           artifacts: >-
             dist/*.bz2,
-            dist/*.integrity
+            dist/*.integrity,
+            dist/*.AppImage
           omitBodyDuringUpdate: true
           omitNameDuringUpdate: true
           prerelease: true

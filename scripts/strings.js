@@ -34,7 +34,6 @@ program
   .command('import [dir]')
   .description('import all matching YML files')
   .action(dir => {
-    console.log('ho')
     let home = dir || HOME
 
     for (let file of ls(home)) {
@@ -78,7 +77,7 @@ program
     process.env.TRANSIFEX_API_TOKEN)
   .option('-l, --lang <codes...>',
     'set the languages to fetch',
-    ['de', 'fr', 'es', 'pt', 'pt_BR', 'ja', 'nl_NL', 'it', 'uk', 'zh_CN'])
+    ['de', 'fr', 'es', 'pt', 'pt_BR', 'ja', 'nl_NL', 'it', 'ru', 'uk', 'zh_CN'])
   .option('-r, --res <slugs...>',
     'set the resources to fetch',
     ['app-menu', 'context-menu', 'main', 'renderer'])

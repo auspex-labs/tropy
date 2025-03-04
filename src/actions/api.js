@@ -97,6 +97,42 @@ export default {
     }
   },
 
+  transcription: {
+    create(payload, meta) {
+      return {
+        type: API.TRANSCRIPTION.CREATE,
+        payload,
+        meta: {
+          cmd: 'project',
+          ...meta
+        }
+      }
+    },
+
+    find(payload, meta) {
+      return {
+        type: API.TRANSCRIPTION.FIND,
+        payload,
+        meta: {
+          cmd: 'project',
+          ...meta
+        }
+      }
+    },
+
+    show(payload, meta) {
+      return {
+        type: API.TRANSCRIPTION.SHOW,
+        payload,
+        meta: {
+          cmd: 'project',
+          ...meta
+        }
+      }
+    }
+  },
+
+
   photo: {
     extract(payload, meta) {
       return {
@@ -123,6 +159,19 @@ export default {
     show(payload, meta) {
       return {
         type: API.PHOTO.SHOW,
+        payload,
+        meta: {
+          cmd: 'project',
+          ...meta
+        }
+      }
+    }
+  },
+
+  list: {
+    show(payload, meta) {
+      return {
+        type: API.LIST.SHOW,
         payload,
         meta: {
           cmd: 'project',

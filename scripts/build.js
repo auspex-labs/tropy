@@ -45,6 +45,7 @@ const ELECTRON = join(ROOT, 'node_modules', 'electron', 'dist')
 
 program
   .name('tropy-build')
+  .allowUnknownOption()
   .option('--platform <name>', 'set target platform', PLATFORM)
   .option('--arch <name>', 'set target arch', ARCH)
   .option('--no-asar', 'skip asar creation')
@@ -358,10 +359,11 @@ Version=1.0
 Terminal=false
 Type=Application
 Name=${qualified.product}
+Comment=Research photo management
 Exec=${exe} %U
 Icon=${icon}
 MimeType=${mimetypes.join(';')};
-Categories=Graphics;Viewer;Science;`
+Categories=Graphics;Viewer;Photography;OCR;`
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

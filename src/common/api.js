@@ -44,12 +44,27 @@ const extract = (type) =>
 const project = {
   async import(ctx) {
     let { assert, request, rsvp } = ctx
+    let { file, list, data } = request.body
 
-    assert.ok(request.body.file, 400, 'missing file parameter')
+    assert(
+      request.type === 'application/x-www-form-urlencoded',
+      400,
+      'content-type not supported')
+
+    if (data) {
+      try {
+        data = JSON.parse(data)
+      } catch {
+        ctx.throw(400, 'invalid JSON data parameter')
+      }
+    }
+
+    assert.ok(file || data, 400, 'missing file/data parameter')
 
     let { payload } = await rsvp('project', act.import({
-      files: request.body.file,
-      list: request.body.list
+      data,
+      files: file,
+      list
     }))
 
     ctx.body = payload
@@ -104,7 +119,7 @@ const project = {
         language,
         photo: photo ? Number(photo) : null,
         selection: selection ? Number(selection) : null,
-        html: request.body.html
+        html
       }))
 
       ctx.body = {
@@ -122,15 +137,105 @@ const project = {
           'format unknown')
 
       let { payload } = await rsvp('project', act.note.show({
-        id: params.note,
+        id: params.id,
         format: query.format
       }))
 
       if (payload != null) {
         if (query.format === 'html')
           ctx.type = 'text/html'
+        if (query.format === 'text' || query.format === 'plain')
+          ctx.type = 'text/plain'
         if (query.format === 'markdown' || query.format === 'md')
           ctx.type = 'text/markdown'
+
+        ctx.body = payload
+
+      } else {
+        ctx.status = 404
+      }
+    }
+  },
+
+  transcriptions: {
+    async create(ctx) {
+      let { assert, request, rsvp } = ctx
+      let { data, text, angle, mirror, photo, selection } = request.body
+
+      assert.ok(data || text, 400,
+        'missing data or text parameter')
+      assert.ok(photo || selection, 400,
+        'missing photo or selection parameter')
+
+      let { payload } = await rsvp('project', act.transcriptions.create({
+        data,
+        text,
+        angle,
+        mirror,
+        photo: photo ? Number(photo) : null,
+        selection: selection ? Number(selection) : null
+      }))
+
+      ctx.body = {
+        id: Object.values(payload).map(tr => tr.id)
+      }
+    },
+
+    async find(ctx) {
+      let { assert, params, query, rsvp } = ctx
+
+      if (query.format)
+        assert(
+          (/^(json|html|plain|text)$/).test(query.format),
+          400,
+          'format unknown')
+
+      if (query.separator)
+        assert(
+          (/^[*_=-]+$/).test(query.separator),
+          400,
+          'bad separator')
+
+      let { payload } = await rsvp('project', act.transcription.find({
+        id: params.id,
+        format: query.format,
+        separator: query.separator
+      }))
+
+      if (payload != null) {
+        if (query.format === 'html')
+          ctx.type = 'text/html'
+        if (query.format === 'text' || query.format === 'plain')
+          ctx.type = 'text/plain'
+
+        ctx.body = payload
+
+      } else {
+        ctx.status = 404
+      }
+    },
+
+    async show(ctx) {
+      let { assert, params, query, rsvp } = ctx
+
+      if (query.format)
+        assert(
+          (/^(json|html|plain|text|xml|alto)$/).test(query.format),
+          400,
+          'format unknown')
+
+      let { payload } = await rsvp('project', act.transcription.show({
+        id: params.id,
+        format: query.format
+      }))
+
+      if (payload != null) {
+        if (query.format === 'html')
+          ctx.type = 'text/html'
+        if (query.format === 'text' || query.format === 'plain')
+          ctx.type = 'text/plain'
+        if (query.format === 'alto' || query.format === 'xml')
+          ctx.type = 'application/xml'
 
         ctx.body = payload
 
@@ -239,8 +344,8 @@ const project = {
 
       let { payload } = await rsvp('project',
         request.body.tag ?
-          act.tag.remove({ id: params.id, tags: request.body.tag }) :
-          act.tag.clear({ id: params.id }))
+            act.tag.remove({ id: params.id, tags: request.body.tag }) :
+            act.tag.clear({ id: params.id }))
 
       ctx.body = payload
     },
@@ -260,6 +365,22 @@ const project = {
     },
 
     show: show('tag')
+  },
+
+  lists: {
+    async show(ctx) {
+      let { params, query, rsvp } = ctx
+
+      let { payload } = await rsvp('project', act.list.show({
+        id: params.id ?? 0,
+        expand: query.expand != null && query.expand !== 'false'
+      }))
+
+      if (payload != null)
+        ctx.body = payload
+      else
+        ctx.status = 404
+    },
   },
 
   selections: {
@@ -291,10 +412,12 @@ export function create({ dispatch, log, rsvp, version }) {
     .get('/project/items/:id', project.items.show)
     .get('/project/items/:id/photos', project.photos.find)
     .get('/project/items/:id/tags', project.tags.find)
+    .get('/project/items/:id/transcriptions', project.transcriptions.find)
     .post('/project/items/:id/tags', project.tags.add)
     .delete('/project/items/:id/tags', project.tags.remove)
 
-    .get('/project/list/:id/items', project.items.find)
+    .get('/project/lists/:id/items', project.items.find)
+    .get('/project/lists/:id?', project.lists.show)
 
     .post('/project/tags', project.tags.create)
     .delete('/project/tags', project.tags.delete)
@@ -306,6 +429,9 @@ export function create({ dispatch, log, rsvp, version }) {
 
     .get('/project/notes/:id', project.notes.show)
     .post('/project/notes', project.notes.create)
+
+    .get('/project/transcriptions/:id', project.transcriptions.show)
+    .post('/project/transcriptions', project.transcriptions.create)
 
     .get('/project/photos/:id', project.photos.show)
     .get('/project/photos/:id/raw', project.photos.raw)

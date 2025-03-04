@@ -1,3 +1,5 @@
+@use "../../abstracts/config" as *;
+
 //
 // Print
 // --------------------------------------------------
@@ -231,7 +233,7 @@ label {
 .note {
   flex: 0 0 67%;
   padding-left: calc($print-page-margin / 16);
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .note-list {

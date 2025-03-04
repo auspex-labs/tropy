@@ -1,3 +1,5 @@
+@use "../../abstracts/config" as *;
+
 //
 // Transcription
 // --------------------------------------------------
@@ -5,23 +7,48 @@
 .alto-document {
   flex: 1 1 auto;
   font-family: $font-family-monospace;
+  font-size: $editor-font-size;
   line-height: normal;
   padding-block: min(10cqh, #{$editor-padding});
-  padding-inline: 10%;
-  height: fit-content;
-  min-height: 100cqh;
+  height: fit-content; // Stretch container
+  min-height: 100cqh; // Stretch container
 
   .text-line {
     display: flex;
-    margin-bottom: 2px;
+  }
+
+  .start-line {
+    flex: 0 0 auto;
+    width: calc(100px - 0.45ch); // Stretch container
   }
 
   .string {
+    flex: 0 0 auto;
+    background-clip: padding-box;
     padding: calc(1ch / 6 + 0.25ch);
-    border-radius: 3px;
+    border: 1px solid transparent;
+    border-radius: 4px;
 
-    & + .string {
-      margin-left: 2px;
+    &.selected {
+      background-color: $string-selected-bg;
+
+      .esper:focus & {
+        color: $string-selected-focus-color;
+        background-color: $string-selected-focus-bg;
+      }
     }
+  }
+
+  .end-line {
+    flex: 1 0 auto;
+    width: calc(10cqw - 0.45ch); // Stretch container
+  }
+
+  // Debugging
+  .outline-all,
+  .outline-string,
+  .outline-line,
+  .outline-text-block {
+    outline: 3px solid if($theme == light, #222, #bbb);
   }
 }

@@ -1,38 +1,43 @@
+@use "../../abstracts/config" as *;
+
 //
 // Esper overlay
 // --------------------------------------------------
 
 .esper-overlay {
+  --toolbar-size: #{$toolbar-height};
   flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  color: $text-color;
+  display: grid;
+  grid-template-columns: auto 0;
+  grid-template-rows: var(--toolbar-size) auto;
   background-color: $esper-bg;
-  font-family: $font-family-base;
-  font-size: $editor-font-size;
-  line-height: $editor-line-height;
+  transition: grid 0.3s ease;
+  overflow: hidden;
+
+  .frameless & {
+    --toolbar-size: #{$toolbar-frameless-height};
+  }
 
   &.full {
     position: absolute;
-    inset: $toolbar-frameless-height 0 0 0;
+    inset: 0;
     z-index: $zindex-esper-header;
   }
 
-  .toolbar {
-    flex: 0 0 auto;
-    height: $toolbar-height;
-    box-shadow: 0 1px 0 $esper-shadow;
+  &.transcription-panel-visible {
+    grid-template-columns: auto $esper-panel-width;
+  }
 
-    .frameless & {
-      height: zoom($toolbar-frameless-height);
+  .side-by-side .text-overlay-split &,
+  .side-by-side:not(.esper-maximized) .text-overlay-full & {
+    grid-template-columns: auto;
+    grid-template-rows: var(--toolbar-size) auto 0;
 
-      @if $platform == win32 {
-        height: zoom($toolbar-height);
-      }
-
-      .full :is(&) {
-        -webkit-app-region: drag;
-      }
+    &.transcription-panel-visible {
+      grid-template-rows:
+        var(--toolbar-size)
+        auto
+        min($esper-panel-height, calc(100% - var(--toolbar-size)));
     }
   }
 }

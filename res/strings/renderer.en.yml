@@ -110,7 +110,6 @@ en:
           tpy: Links to photos at their original location.
           managed: Copies photos to project folder on import.
       create: Create Project
-      eyeCatcher: New
     stats:
       photos: >-
         {photos, plural,
@@ -171,6 +170,7 @@ en:
           nl-NL: Nederlands
           pt: Português
           pt-BR: Português brasileiro
+          ru: русский
           uk: Украї́нська мо́ва
       templates:
         label: Default templates
@@ -308,6 +308,9 @@ en:
     size: Size
     created: Date Added
     modified: Modified
+  settings:
+    maximize: Maximize this view
+    unmaximize: Restore previous view size
   esper:
     tool:
       pan: Pan Tool
@@ -322,7 +325,7 @@ en:
     overlay:
       full: Show full text overlay
       split: Show split-view text overlay
-    maximize: Toggle notes
+      panel: Toggle transcription version history
     panel:
       negative: Invert colors
       revert: Revert to Original
@@ -648,8 +651,15 @@ en:
       sinkListItem: Sink list item
       liftListItem: Lift list item
   transcription:
-    error: Transcription Error
+    error: Transcription failed
+    retry: Try Again
     pending: Transcription pending…
+    title: >-
+      {name, select,
+        true {{name}}
+        other {Transcription}
+      }
+
   error:
     cache:
       prune: Failed to optimize project cache.

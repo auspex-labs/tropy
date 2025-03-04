@@ -2,6 +2,7 @@ import React from 'react'
 import cx from 'classnames'
 import debounce from 'lodash.debounce'
 import throttle from 'lodash.throttle'
+import { clipboard } from 'electron'
 import { Toolbar } from '../toolbar.js'
 import { FILTERS } from '../../esper/index.js'
 import { EsperContainer } from './container.js'
@@ -12,7 +13,8 @@ import { EsperPanel } from './panel.js'
 import { EsperOverlay } from './overlay.js'
 import { EsperView } from './view.js'
 import { Transcription } from '../transcription/transcription.js'
-import { pick, restrict } from '../../common/util.js'
+import { TranscriptionPanel } from '../transcription/panel.js'
+import { flipMap, mergeMap, pick, restrict } from '../../common/util.js'
 import { Cache } from '../../common/cache.js'
 import { isHorizontal, rotate, round } from '../../common/math.js'
 import { addOrientation, subOrientation } from '../../common/iiif.js'
@@ -20,11 +22,12 @@ import { match } from '../../keymap.js'
 import { getResolution } from '../../dom.js'
 import { ESPER, SASS } from '../../constants/index.js'
 import memoize from 'memoize-one'
-import { Document } from 'alto.js'
+import { Document } from 'alto-xml'
 
 const {
   TOOL,
-  MODE
+  MODE,
+  OVERLAY
 } = ESPER
 
 const {
@@ -39,6 +42,10 @@ const {
   ZOOM_STEP_SIZE,
   ZOOM_PRECISION
 } = SASS.ESPER
+
+const parseAltoDocument = memoize((data) => (
+  Document.parse(data)
+))
 
 
 export class Esper extends React.Component {
@@ -69,17 +76,21 @@ export class Esper extends React.Component {
   static getDerivedStateFromProps(props, prevState) {
     let id
     let src
+    let text = parseAltoDocument(props.transcription?.data)
 
     if (props.photo && !props.photo.pending) {
       id = props.selection?.id ?? props.photo.id
       src = Cache.url(props.cache, 'full', props.photo)
     }
 
-    if (id === prevState.id && src === prevState.src)
+
+    if (id === prevState.id && src === prevState.src && text === prevState.text)
       return null
     else
       return {
         ...prevState,
+        text,
+        textSelection: new Map,
         quicktool: null,
         id,
         src,
@@ -127,6 +138,8 @@ export class Esper extends React.Component {
       return true // view going to reset anyway!
     if (this.state.id !== nextState.id)
       return true // view going to sync anyway!
+    if (this.props.transcription !== nextProps.transcription)
+      return true
 
     if (this.didImageChange(nextProps, nextState)) {
       let state = Esper.getDerivedImageStateFromProps(nextProps)
@@ -183,7 +196,10 @@ export class Esper extends React.Component {
 
     if (shouldViewReset || shouldViewSync || hasBecomeVisible) {
       let next = getZoomBounds(this.props, this.state, this.screen)
-      let state = { ...this.state, ...next }
+      let state = {
+        ...this.state,
+        ...next
+      }
 
       if (this.state.isVisible) {
         shouldViewReset = shouldViewReset || !this.esper.current.photo
@@ -202,7 +218,8 @@ export class Esper extends React.Component {
     } else {
       if (this.state.isVisible) {
         if (this.props.selections !== prevProps.selections ||
-          this.tool !== getActiveTool(prevProps, prevState)
+          this.tool !== getActiveTool(prevProps, prevState) ||
+          this.state.text !== prevState.text
         ) {
           this.esper.current.photo?.sync(this.props, this.state)
         }
@@ -249,9 +266,35 @@ export class Esper extends React.Component {
     }
   }
 
-  getAltoDocument = memoize((data) => (
-    Document.parse(data)
-  ))
+  setTextSelection = (textSelection) => {
+    this.setState({ textSelection })
+  }
+
+  handleTextSelection = throttle(({ x, y, width, height }, modifier, base) => {
+    if (this.state.text) {
+      if (this.props.selection) {
+        x -= this.props.selection.x
+        y -= this.props.selection.y
+      }
+
+      let textSelection = this.state.text.select({ x, y, width, height })
+
+      switch (modifier) {
+        case 'SHIFT':
+          textSelection = mergeMap(textSelection, base)
+          break
+        case 'META':
+          textSelection = flipMap(textSelection, base)
+          break
+      }
+
+      this.setTextSelection(textSelection)
+    }
+  }, 75)
+
+  copyTextSelection() {
+    clipboard.writeText(this.state.text?.toPlainText(this.state.textSelection))
+  }
 
   handleChange = (esper) => {
     this.props.onChange({ esper })
@@ -420,12 +463,16 @@ export class Esper extends React.Component {
     })
   }
 
+  // eslint-disable-next-line complexity
   handleKeyDown = (event) => {
     if (this.state.quicktool != null) {
       this.handleQuickToolKeyDown(event)
 
     } else {
       switch (match(this.props.keymap, event)) {
+        case 'copy':
+          this.copyTextSelection()
+          break
         case 'zoomIn':
           this.handleZoomIn()
           break
@@ -609,12 +656,11 @@ export class Esper extends React.Component {
 
   render() {
     let { isDisabled } = this
-    let { overlay, isMaximized, transcription } = this.props
+    let { hasSideBySideLayout, overlay, overlayPanel, transcription } = this.props
 
     let isOverlayVisible =
       overlay && transcription != null
-
-    let alto = this.getAltoDocument(transcription?.data)
+    let isOverlaySplit = overlay === OVERLAY.SPLIT
 
     return (
       <EsperContainer
@@ -637,11 +683,6 @@ export class Esper extends React.Component {
         <div className="esper-container">
           <EsperHeader>
             <Toolbar.Left>
-              <ToolGroup.Layout
-                overlay={overlay}
-                isMaximized={isMaximized}
-                isDisabled={isDisabled}
-                onChange={this.handleChange}/>
               <ToolGroup.Tool
                 current={this.tool}
                 isDisabled={isDisabled}
@@ -665,20 +706,24 @@ export class Esper extends React.Component {
                 onChange={this.handleZoomChange}/>
             </Toolbar.Left>
             <Toolbar.Right>
-              <ToolGroup.Panel
-                current={this.props.isPanelVisible}
+              <ToolGroup.Layout
+                isAltLayout={hasSideBySideLayout && isOverlaySplit}
                 isDisabled={isDisabled}
-                onChange={this.handleChange}/>
+                onChange={this.handleChange}
+                overlay={overlay}
+                panel={this.props.isPanelVisible}/>
             </Toolbar.Right>
           </EsperHeader>
           <EsperView
             ref={this.esper}
+            textSelection={this.state.textSelection}
             onChange={this.handleViewChange}
             onPhotoError={this.handlePhotoError}
             onResize={this.handleResize}
             onResolutionChange={this.handleResolutionChange}
             onSelectionActivate={this.handleSelectionActivate}
             onSelectionCreate={this.handleSelectionCreate}
+            onSelectText={this.handleTextSelection}
             onTextureChange={this.handleTextureChange}
             onWheelPan={this.handleWheelPan}
             onWheelZoom={this.handleWheelZoom}
@@ -703,11 +748,31 @@ export class Esper extends React.Component {
         </div>
 
         {isOverlayVisible && (
-          <EsperOverlay mode={overlay}>
-            <Toolbar/>
+          <EsperOverlay
+            mode={overlay}
+            hasTitlebar={hasSideBySideLayout || !isOverlaySplit}
+            toolbar={(
+              <Toolbar.Right>
+                <ToolGroup.Layout
+                  isAltLayout={!hasSideBySideLayout && isOverlaySplit}
+                  isDisabled={isDisabled}
+                  onChange={this.handleChange}
+                  overlay={overlay}
+                  overlayPanel={overlayPanel}/>
+              </Toolbar.Right>
+            )}
+            isPanelVisible={overlayPanel}
+            panel={(
+              <TranscriptionPanel
+                active={transcription.id}
+                isDisabled={isDisabled}
+                id={this.state.id}/>
+            )}>
             <Transcription
               config={transcription.config}
-              data={alto}
+              data={this.state.text}
+              onSelect={this.setTextSelection}
+              selection={this.state.textSelection}
               status={transcription.status}
               text={transcription.text}/>
           </EsperOverlay>

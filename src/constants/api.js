@@ -10,6 +10,12 @@ export default {
     SHOW: 'api.photo.show'
   },
 
+  TRANSCRIPTION: {
+    CREATE: 'api.transcription.create',
+    FIND: 'api.transcription.find',
+    SHOW: 'api.transcription.show'
+  },
+
   SELECTION: {
     SHOW: 'api.selection.show'
   },
@@ -21,6 +27,10 @@ export default {
 
   METADATA: {
     SHOW: 'api.metadata.show'
+  },
+
+  LIST: {
+    SHOW: 'api.list.show'
   },
 
   TAG: {

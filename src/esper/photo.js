@@ -1,13 +1,13 @@
-import * as PIXI from 'pixi.js'
-import { AdjustmentFilter } from '@pixi/filter-adjustment'
+import { Container, ColorMatrixFilter, Sprite, Rectangle } from 'pixi.js'
+import { AdjustmentFilter } from 'pixi-filters'
 import { SharpenFilter } from './filter/index.js'
 import { SelectionLayer, SelectionOverlay } from './selection.js'
+import { TextLayer } from './text-layer.js'
 import { constrain } from './util.js'
 import { getResolution } from '../dom.js'
 import { deg, isHorizontal } from '../common/math.js'
 import { ESPER } from '../constants/index.js'
 
-const { Container, ColorMatrixFilter, Sprite, Rectangle } = PIXI
 
 const NEGATIVE = [
   -1, 0, 0, 1, 0, 0, -1, 0, 1, 0, 0, 0, -1, 1, 0, 0, 0, 0, 1, 0
@@ -55,6 +55,9 @@ export class Photo extends Container {
 
     this.overlay = new SelectionOverlay()
     this.addChild(this.overlay)
+
+    this.textLayer = new TextLayer()
+    this.addChild(this.textLayer)
   }
 
   get adjust() {
@@ -206,7 +209,12 @@ export class Photo extends Container {
   }
 
   destroy() {
-    super.destroy({ children: true })
+    super.destroy({
+      children: true,
+      texture: true,
+      textureSource: true,
+      context: true
+    })
   }
 
   hue(value = 0) {
@@ -244,15 +252,20 @@ export class Photo extends Container {
     this.selections.sync(props, state)
     this.overlay.sync(props, state)
     this.tool = state.quicktool || props.tool
+    this.textLayer.sync(props, state)
   }
 
-  update(dragState) {
+  update(dragState, textSelection) {
     if (this.selections.visible) {
       this.selections.update(dragState)
     }
 
     if (this.overlay.visible) {
       this.overlay.update()
+    }
+
+    if (this.textLayer.visible) {
+      this.textLayer.update(dragState, textSelection)
     }
   }
 }

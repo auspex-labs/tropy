@@ -1,4 +1,3 @@
-import { SCALE_MODES } from 'pixi.js'
 import * as css from '../css.js'
 import { restrict } from '../common/util.js'
 import { darwin } from '../common/os.js'
@@ -40,14 +39,12 @@ export const center = ({ x = 0, y = 0, width, height }) => ({
 export function setScaleMode(texture, zoom) {
   if (texture == null) return
 
-  let { baseTexture } = texture
+  let { source } = texture
   let crisp = (zoom > ZOOM_LINEAR_MAX) || (zoom === 1)
-  let scaleMode = crisp ?
-    SCALE_MODES.NEAREST :
-    SCALE_MODES.LINEAR
+  let scaleMode = crisp ? 'nearest' : 'linear'
 
-  if (baseTexture.scaleMode !== scaleMode) {
-    baseTexture.scaleMode = scaleMode
+  if (source.scaleMode !== scaleMode) {
+    source.scaleMode = scaleMode
   }
 }
 
@@ -59,6 +56,13 @@ export function addCursorStyle(styles, name, cursor = CURSOR[name]) {
 
   styles[name] = css.cursor(svg(cursor.default), cursor)
   styles[`${name}-active`] = css.cursor(svg(cursor.active), cursor)
+}
+
+export function move(pos, { x = 0, y = 0 } = {}) {
+  pos.x += x
+  pos.y += y
+
+  return pos
 }
 
 export function normalizeRectangle({

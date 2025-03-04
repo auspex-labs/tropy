@@ -5,7 +5,14 @@ import { json, stringify } from '../common/util.js'
 import { serialize } from '../dom.js'
 
 
-export async function create(db, { parent, config = {}, text, data }) {
+export async function create(db, {
+  parent,
+  config = {},
+  text,
+  data,
+  angle = 0,
+  mirror = false
+}) {
   let status = (text) ? 1 : 0
 
   if (data instanceof Node)
@@ -18,10 +25,12 @@ export async function create(db, { parent, config = {}, text, data }) {
         config: stringify(config),
         data,
         text,
+        angle,
+        mirror,
         status
       }))
 
-  return (await load(db, [id]))[id]
+  return (await load(db, id))[id]
 }
 
 export async function load(db, id) {
@@ -34,16 +43,17 @@ export async function load(db, id) {
     'text',
     'data',
     'status',
+    'angle',
+    'mirror',
     'created',
     'modified'
-  )
-
-  query.from('transcriptions')
-  query.order('modified', 'asc')
-  query.where({ deleted: null })
+  ).from('transcriptions')
 
   if (id) {
     query.where({ transcription_id: id })
+  } else {
+    query.order('modified', 'asc')
+    query.where({ deleted: null })
   }
 
   await db.each(...query, ({
@@ -81,6 +91,8 @@ export async function save(db, {
   config,
   data,
   text,
+  angle,
+  mirror,
   status,
   modified = new Date
 }) {
@@ -95,6 +107,8 @@ export async function save(db, {
     config,
     data,
     text,
+    angle,
+    mirror,
     status,
     modified: modified.toISOString()
   }).where({ transcription_id: id })
@@ -124,4 +138,13 @@ export async function prune(db, since = '-1 week') {
     WHERE deleted is NOT NULL OR (
       status < 0 AND datetime(modified) < datetime('now', '${since}')
     )`)
+}
+
+export async function touch(db, id) {
+  await db.run(
+    ...update('transcriptions')
+      .set({ modified: Date.now() })
+      .where({ transcription_id: id }))
+
+  return await load(db, id)
 }

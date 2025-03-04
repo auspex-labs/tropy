@@ -1,3 +1,6 @@
+@use "sass:map";
+@use "../../abstracts/config" as *;
+
 //
 // Esper
 // --------------------------------------------------
@@ -21,53 +24,150 @@
     }
   }
 
-  &:not(.overlay-mode) {
-    .slider-handle {
-      background-color: $esper-slider-handle-bg;
+  .slider-handle {
+    background-color: $esper-slider-handle-bg;
 
-      .slider:focus :is(&) {
-        background-color: $slider-focus-bg;
-        border-color: transparent;
-      }
-
-      .slider.disabled :is(&) {
-        background-color: $esper-slider-handle-disabled-bg;
-      }
+    .slider:focus :is(&) {
+      background-color: $slider-focus-bg;
+      border-color: transparent;
     }
 
-    .slider-range {
-      .slider:focus :is(&) {
-        background-color: $slider-focus-bg;
-      }
-    }
-
-    .slider-value {
-      color: $esper-slider-value-color;
-    }
-
-    .btn-default {
-      background-color: $esper-btn-default-bg;
-      border-color: $esper-btn-default-border;
-
-      &:active {
-        background-color: $esper-btn-default-active-bg;
-      }
-
-      &.disabled,
-      &[disabled] {
-        background-color: $esper-btn-default-bg;
-      }
+    .slider.disabled :is(&) {
+      background-color: $esper-slider-handle-disabled-bg;
     }
   }
 
-  &.overlay-mode {
-    color: $esper-overlay-color;
+  .slider-range {
+    .slider:focus :is(&) {
+      background-color: $slider-focus-bg;
+    }
+  }
+
+  .slider-value {
+    color: $esper-slider-value-color;
+  }
+
+  .btn-default {
+    background-color: $esper-btn-default-bg;
+    border-color: $esper-btn-default-border;
+
+    &:active {
+      background-color: $esper-btn-default-active-bg;
+    }
+
+    &.disabled,
+    &[disabled] {
+      background-color: $esper-btn-default-bg;
+    }
   }
 
   .esper-container {
     flex: 1 1 0;
     display: flex;
     flex-direction: column;
+
+    .overlay-mode :is(&) {
+      color: $esper-overlay-color;
+
+      .slider-track {
+        opacity: $slider-overlay-track-opacity;
+        background-color: $slider-overlay-track-bg;
+
+        .slider:focus :is(&) {
+          opacity: $slider-overlay-track-focus-opacity;
+          background-color: $slider-overlay-track-focus-bg;
+        }
+
+        .slider.disabled :is(&) {
+          opacity: $slider-overlay-track-disabled-opacity;
+          background-color: $slider-overlay-track-disabled-bg;
+        }
+      }
+
+      .slider-range {
+        background-color: $slider-overlay-range-bg;
+
+        .slider:focus :is(&) {
+          background-color: $slider-overlay-focus-bg;
+        }
+      }
+
+      .slider-handle {
+        background-color: $slider-overlay-handle-bg;
+        border-color: $slider-overlay-handle-border;
+
+        .slider:focus :is(&) {
+          background-color: $slider-overlay-focus-bg;
+        }
+      }
+
+      .slider-value {
+        color: $slider-overlay-value-color;
+      }
+
+      .btn-default {
+        background: $btn-default-overlay-bg;
+        border-color: transparent;
+        color: $btn-default-overlay-color;
+
+        @include input-btn-focus(":focus-visible", $input-btn-overlay-focus-color);
+
+        &:active {
+          background: $btn-default-overlay-active-bg;
+        }
+
+        &[disabled],
+        &.disabled {
+          background: $btn-default-overlay-bg;
+        }
+      }
+
+      .checkbox,
+      .radio {
+        [type] {
+          background: $input-overlay-bg;
+          border-color: transparent;
+
+          &:active {
+            background: $checkbox-overlay-checked-bg;
+          }
+
+          &:focus-visible {
+            border-color: $input-overlay-focus-color;
+            box-shadow: 0 0 0 2px $input-overlay-focus-color;
+          }
+
+          &[disabled] {
+            background: $input-overlay-bg-readonly;
+            border-color: $checkbox-overlay-disabled-border;
+          }
+
+          &:checked {
+            background: $checkbox-overlay-checked-bg;
+
+            &:active {
+              background: $checkbox-overlay-checked-active-bg;
+              border-color: transparent;
+            }
+
+            &:focus-visible {
+              border-color: $input-overlay-focus-color;
+              box-shadow: 0 0 0 2px $input-overlay-focus-color;
+            }
+
+            &[disabled] {
+              background: $input-overlay-bg-readonly;
+              border-color: $checkbox-overlay-disabled-border;
+
+              &::before,
+              &::after {
+                background: $checkbox-overlay-checked-bg;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   .esper-header {
@@ -85,10 +185,6 @@
 
     .frameless & {
       height: zoom($toolbar-frameless-height);
-
-      @if $platform == win32 {
-        height: zoom($toolbar-height);
-      }
     }
   }
 
@@ -99,8 +195,34 @@
     background-color: $esper-bg;
     position: relative;
 
-    .side-by-side & {
+    .side-by-side:not(.esper-maximized) &,
+    .side-by-side.esper-maximized .text-overlay-split :is(&) {
       flex-direction: column;
+    }
+
+    .text-overlay-split :is(&) {
+      &::after {
+        content: "";
+        position: absolute;
+        background-color: $esper-shadow;
+        bottom: 0;
+      }
+
+      .stacked :is(&) {
+        &::after {
+          height: 1px;
+          left: 0;
+          right: 0;
+        }
+      }
+
+      .side-by-side :is(&) {
+        &::after {
+          width: 1px;
+          top: 1px;
+          right: 0;
+        }
+      }
     }
   }
 
@@ -124,22 +246,12 @@
       .esper-view {
         cursor:
           -webkit-image-set(
-            cursor-url("#{map-get($val, 'default')}@1x.svg") 1x,
-            cursor-url("#{map-get($val, 'default')}@2x.svg") 2x
+            cursor-url("#{map.get($val, 'default')}@1x.svg") 1x,
+            cursor-url("#{map.get($val, 'default')}@2x.svg") 2x
           )
-          map-get($val, "x") map-get($val, "y"),
+          map.get($val, "x") map.get($val, "y"),
           default;
       }
-    }
-  }
-
-  .resizable {
-    .stacked & {
-      margin-top: $space-min;
-    }
-
-    .side-by-side & {
-      margin-left: $space-min;
     }
   }
 }

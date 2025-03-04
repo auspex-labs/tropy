@@ -357,10 +357,10 @@ nl-NL:
         command: app:rotate-item-right
         accelerator: CmdOrCtrl+]
     item-transcribe:
-      - label: Transcribe Selected Items
+      - label: Selectie transcriberen
         id: item-transcribe
         submenu:
-          - label: With Tropy
+          - label: Met Tropy
             command: app:transcribe-item
             enabled: false
     item-bulk:
@@ -410,17 +410,17 @@ nl-NL:
         command: app:open-path
       - label: Fotolink kopiëren
         command: app:copy-photo-link
-      - label: Export Photo
+      - label: Foto exporteren
         id: extract
         submenu:
-          - label: To File
+          - label: Naar bestand
             command: app:extract-photo
-          - label: To Clipboard
+          - label: Naar klembord
             command: app:copy-photo
-      - label: Transcribe Photo
+      - label: Foto transcriberen
         id: transcribe
         submenu:
-          - label: With Tropy
+          - label: Met Tropy
             command: app:transcribe-photo
             enabled: false
       - label: Foto samenvoegen
@@ -461,6 +461,19 @@ nl-NL:
             type: checkbox
           - label: Zij-aan-zij
             id: side-by-side
+            type: checkbox
+      - label: Maximize View
+        id: maximize-view
+        submenu:
+          - label: Image
+            id: esper
+            type: checkbox
+          - label: Notepad
+            type: checkbox
+            id: notepad
+          - type: separator
+          - label: None
+            id: none
             type: checkbox
     metadata-list:
       - label: Nieuw veld…
@@ -883,6 +896,19 @@ nl-NL:
           - label: Zij-aan-zij
             id: side-by-side
             type: checkbox
+      - label: Maximize View
+        id: maximize-view
+        submenu:
+          - label: Image
+            id: esper
+            type: checkbox
+          - label: Notepad
+            type: checkbox
+            id: notepad
+          - type: separator
+          - label: None
+            id: none
+            type: checkbox
     item-rotate:
       - label: Naar links draaien
         command: app:rotate-item-left
@@ -891,10 +917,10 @@ nl-NL:
         command: app:rotate-item-right
         accelerator: CmdOrCtrl+]
     item-transcribe:
-      - label: Transcribe Selected Items
+      - label: Selectie transcriberen
         id: item-transcribe
         submenu:
-          - label: With Tropy
+          - label: Met Tropy
             command: app:transcribe-item
             enabled: false
     metadata-list:
@@ -926,17 +952,17 @@ nl-NL:
         command: app:open-path
       - label: Fotolink kopiëren
         command: app:copy-photo-link
-      - label: Export Photo
+      - label: Foto exporteren
         id: extract
         submenu:
-          - label: To File
+          - label: Naar bestand
             command: app:extract-photo
-          - label: To Clipboard
+          - label: Naar klembord
             command: app:copy-photo
-      - label: Transcribe Photo
+      - label: Foto transcriberen
         id: transcribe
         submenu:
-          - label: With Tropy
+          - label: Met Tropy
             command: app:transcribe-photo
             enabled: false
       - label: Foto samenvoegen
@@ -1368,6 +1394,19 @@ nl-NL:
           - label: Zij-aan-zij
             id: side-by-side
             type: checkbox
+      - label: Maximize View
+        id: maximize-view
+        submenu:
+          - label: Image
+            id: esper
+            type: checkbox
+          - label: Notepad
+            type: checkbox
+            id: notepad
+          - type: separator
+          - label: None
+            id: none
+            type: checkbox
     item-rotate:
       - label: Naar links draaien
         command: app:rotate-item-left
@@ -1376,10 +1415,10 @@ nl-NL:
         command: app:rotate-item-right
         accelerator: CmdOrCtrl+]
     item-transcribe:
-      - label: Transcribe Selected Items
+      - label: Selectie transcriberen
         id: item-transcribe
         submenu:
-          - label: With Tropy
+          - label: Met Tropy
             command: app:transcribe-item
             enabled: false
     metadata-list:
@@ -1411,17 +1450,17 @@ nl-NL:
         command: app:open-path
       - label: Fotolink kopiëren
         command: app:copy-photo-link
-      - label: Export Photo
+      - label: Foto exporteren
         id: extract
         submenu:
-          - label: To File
+          - label: Naar bestand
             command: app:extract-photo
-          - label: To Clipboard
+          - label: Naar klembord
             command: app:copy-photo
-      - label: Transcribe Photo
+      - label: Foto transcriberen
         id: transcribe
         submenu:
-          - label: With Tropy
+          - label: Met Tropy
             command: app:transcribe-photo
             enabled: false
       - label: Foto samenvoegen
