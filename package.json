@@ -116,7 +116,7 @@
     "rollup-plugin-natives": "^0.7.2",
     "sass": "^1.64.2",
     "shx": "^0.4.0",
-    "source-map-js": "^1.2.1",
+    "source-map-js": "^1.2.2",
     "spark-chamber": "^0.1.0",
     "split2": "^4.0.0",
     "sqleton": "^4.0.0",
